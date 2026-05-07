@@ -9,38 +9,137 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppProjectsRouteImport } from './routes/_app/projects'
+import { Route as AppInvoicesRouteImport } from './routes/_app/invoices'
+import { Route as AppEquipmentRouteImport } from './routes/_app/equipment'
+import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
+import { Route as AppCrewRouteImport } from './routes/_app/crew'
 
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppProjectsRoute = AppProjectsRouteImport.update({
+  id: '/projects',
+  path: '/projects',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppInvoicesRoute = AppInvoicesRouteImport.update({
+  id: '/invoices',
+  path: '/invoices',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppEquipmentRoute = AppEquipmentRouteImport.update({
+  id: '/equipment',
+  path: '/equipment',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDashboardRoute = AppDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCrewRoute = AppCrewRouteImport.update({
+  id: '/crew',
+  path: '/crew',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/crew': typeof AppCrewRoute
+  '/dashboard': typeof AppDashboardRoute
+  '/equipment': typeof AppEquipmentRoute
+  '/invoices': typeof AppInvoicesRoute
+  '/projects': typeof AppProjectsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/crew': typeof AppCrewRoute
+  '/dashboard': typeof AppDashboardRoute
+  '/equipment': typeof AppEquipmentRoute
+  '/invoices': typeof AppInvoicesRoute
+  '/projects': typeof AppProjectsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_app': typeof AppRouteWithChildren
+  '/login': typeof LoginRoute
+  '/_app/crew': typeof AppCrewRoute
+  '/_app/dashboard': typeof AppDashboardRoute
+  '/_app/equipment': typeof AppEquipmentRoute
+  '/_app/invoices': typeof AppInvoicesRoute
+  '/_app/projects': typeof AppProjectsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/crew'
+    | '/dashboard'
+    | '/equipment'
+    | '/invoices'
+    | '/projects'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/login'
+    | '/crew'
+    | '/dashboard'
+    | '/equipment'
+    | '/invoices'
+    | '/projects'
+  id:
+    | '__root__'
+    | '/'
+    | '/_app'
+    | '/login'
+    | '/_app/crew'
+    | '/_app/dashboard'
+    | '/_app/equipment'
+    | '/_app/invoices'
+    | '/_app/projects'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRouteWithChildren
+  LoginRoute: typeof LoginRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +147,66 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/projects': {
+      id: '/_app/projects'
+      path: '/projects'
+      fullPath: '/projects'
+      preLoaderRoute: typeof AppProjectsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/invoices': {
+      id: '/_app/invoices'
+      path: '/invoices'
+      fullPath: '/invoices'
+      preLoaderRoute: typeof AppInvoicesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/equipment': {
+      id: '/_app/equipment'
+      path: '/equipment'
+      fullPath: '/equipment'
+      preLoaderRoute: typeof AppEquipmentRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/dashboard': {
+      id: '/_app/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AppDashboardRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/crew': {
+      id: '/_app/crew'
+      path: '/crew'
+      fullPath: '/crew'
+      preLoaderRoute: typeof AppCrewRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
+interface AppRouteChildren {
+  AppCrewRoute: typeof AppCrewRoute
+  AppDashboardRoute: typeof AppDashboardRoute
+  AppEquipmentRoute: typeof AppEquipmentRoute
+  AppInvoicesRoute: typeof AppInvoicesRoute
+  AppProjectsRoute: typeof AppProjectsRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppCrewRoute: AppCrewRoute,
+  AppDashboardRoute: AppDashboardRoute,
+  AppEquipmentRoute: AppEquipmentRoute,
+  AppInvoicesRoute: AppInvoicesRoute,
+  AppProjectsRoute: AppProjectsRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AppRoute: AppRouteWithChildren,
+  LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
