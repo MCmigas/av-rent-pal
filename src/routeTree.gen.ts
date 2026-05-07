@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppProjectsRouteImport } from './routes/_app/projects'
 import { Route as AppEquipmentRouteImport } from './routes/_app/equipment'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
+import { Route as AppCrewRouteImport } from './routes/_app/crew'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -45,10 +46,16 @@ const AppDashboardRoute = AppDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AppRoute,
 } as any)
+const AppCrewRoute = AppCrewRouteImport.update({
+  id: '/crew',
+  path: '/crew',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/crew': typeof AppCrewRoute
   '/dashboard': typeof AppDashboardRoute
   '/equipment': typeof AppEquipmentRoute
   '/projects': typeof AppProjectsRoute
@@ -56,6 +63,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/crew': typeof AppCrewRoute
   '/dashboard': typeof AppDashboardRoute
   '/equipment': typeof AppEquipmentRoute
   '/projects': typeof AppProjectsRoute
@@ -65,20 +73,28 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
+  '/_app/crew': typeof AppCrewRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/equipment': typeof AppEquipmentRoute
   '/_app/projects': typeof AppProjectsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/dashboard' | '/equipment' | '/projects'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/crew'
+    | '/dashboard'
+    | '/equipment'
+    | '/projects'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/dashboard' | '/equipment' | '/projects'
+  to: '/' | '/login' | '/crew' | '/dashboard' | '/equipment' | '/projects'
   id:
     | '__root__'
     | '/'
     | '/_app'
     | '/login'
+    | '/_app/crew'
     | '/_app/dashboard'
     | '/_app/equipment'
     | '/_app/projects'
@@ -134,16 +150,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDashboardRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/crew': {
+      id: '/_app/crew'
+      path: '/crew'
+      fullPath: '/crew'
+      preLoaderRoute: typeof AppCrewRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
+  AppCrewRoute: typeof AppCrewRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppEquipmentRoute: typeof AppEquipmentRoute
   AppProjectsRoute: typeof AppProjectsRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppCrewRoute: AppCrewRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppEquipmentRoute: AppEquipmentRoute,
   AppProjectsRoute: AppProjectsRoute,
