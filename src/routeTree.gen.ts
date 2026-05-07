@@ -13,6 +13,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppProjectsRouteImport } from './routes/_app/projects'
+import { Route as AppInvoicesRouteImport } from './routes/_app/invoices'
 import { Route as AppEquipmentRouteImport } from './routes/_app/equipment'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppCrewRouteImport } from './routes/_app/crew'
@@ -34,6 +35,11 @@ const IndexRoute = IndexRouteImport.update({
 const AppProjectsRoute = AppProjectsRouteImport.update({
   id: '/projects',
   path: '/projects',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppInvoicesRoute = AppInvoicesRouteImport.update({
+  id: '/invoices',
+  path: '/invoices',
   getParentRoute: () => AppRoute,
 } as any)
 const AppEquipmentRoute = AppEquipmentRouteImport.update({
@@ -58,6 +64,7 @@ export interface FileRoutesByFullPath {
   '/crew': typeof AppCrewRoute
   '/dashboard': typeof AppDashboardRoute
   '/equipment': typeof AppEquipmentRoute
+  '/invoices': typeof AppInvoicesRoute
   '/projects': typeof AppProjectsRoute
 }
 export interface FileRoutesByTo {
@@ -66,6 +73,7 @@ export interface FileRoutesByTo {
   '/crew': typeof AppCrewRoute
   '/dashboard': typeof AppDashboardRoute
   '/equipment': typeof AppEquipmentRoute
+  '/invoices': typeof AppInvoicesRoute
   '/projects': typeof AppProjectsRoute
 }
 export interface FileRoutesById {
@@ -76,6 +84,7 @@ export interface FileRoutesById {
   '/_app/crew': typeof AppCrewRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/equipment': typeof AppEquipmentRoute
+  '/_app/invoices': typeof AppInvoicesRoute
   '/_app/projects': typeof AppProjectsRoute
 }
 export interface FileRouteTypes {
@@ -86,9 +95,17 @@ export interface FileRouteTypes {
     | '/crew'
     | '/dashboard'
     | '/equipment'
+    | '/invoices'
     | '/projects'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/crew' | '/dashboard' | '/equipment' | '/projects'
+  to:
+    | '/'
+    | '/login'
+    | '/crew'
+    | '/dashboard'
+    | '/equipment'
+    | '/invoices'
+    | '/projects'
   id:
     | '__root__'
     | '/'
@@ -97,6 +114,7 @@ export interface FileRouteTypes {
     | '/_app/crew'
     | '/_app/dashboard'
     | '/_app/equipment'
+    | '/_app/invoices'
     | '/_app/projects'
   fileRoutesById: FileRoutesById
 }
@@ -136,6 +154,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProjectsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/invoices': {
+      id: '/_app/invoices'
+      path: '/invoices'
+      fullPath: '/invoices'
+      preLoaderRoute: typeof AppInvoicesRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/equipment': {
       id: '/_app/equipment'
       path: '/equipment'
@@ -164,6 +189,7 @@ interface AppRouteChildren {
   AppCrewRoute: typeof AppCrewRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppEquipmentRoute: typeof AppEquipmentRoute
+  AppInvoicesRoute: typeof AppInvoicesRoute
   AppProjectsRoute: typeof AppProjectsRoute
 }
 
@@ -171,6 +197,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppCrewRoute: AppCrewRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppEquipmentRoute: AppEquipmentRoute,
+  AppInvoicesRoute: AppInvoicesRoute,
   AppProjectsRoute: AppProjectsRoute,
 }
 
