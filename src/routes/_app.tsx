@@ -31,6 +31,7 @@ const groups: NavGroup[] = [
   {
     label: "Operações",
     items: [
+      { to: "/calendar", label: "Calendário", icon: Calendar, perm: "equipment.view" },
       { to: "/projects", label: "Projetos", icon: Calendar, perm: "projects.view" },
       { to: "/equipment", label: "Equipamento", icon: Package, perm: "equipment.view" },
     ],
