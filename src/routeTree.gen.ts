@@ -17,6 +17,7 @@ import { Route as AppInvoicesRouteImport } from './routes/_app/invoices'
 import { Route as AppEquipmentRouteImport } from './routes/_app/equipment'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppCrewRouteImport } from './routes/_app/crew'
+import { Route as AppSettingsUsersRouteImport } from './routes/_app/settings.users'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -57,6 +58,11 @@ const AppCrewRoute = AppCrewRouteImport.update({
   path: '/crew',
   getParentRoute: () => AppRoute,
 } as any)
+const AppSettingsUsersRoute = AppSettingsUsersRouteImport.update({
+  id: '/settings/users',
+  path: '/settings/users',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -66,6 +72,7 @@ export interface FileRoutesByFullPath {
   '/equipment': typeof AppEquipmentRoute
   '/invoices': typeof AppInvoicesRoute
   '/projects': typeof AppProjectsRoute
+  '/settings/users': typeof AppSettingsUsersRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -75,6 +82,7 @@ export interface FileRoutesByTo {
   '/equipment': typeof AppEquipmentRoute
   '/invoices': typeof AppInvoicesRoute
   '/projects': typeof AppProjectsRoute
+  '/settings/users': typeof AppSettingsUsersRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -86,6 +94,7 @@ export interface FileRoutesById {
   '/_app/equipment': typeof AppEquipmentRoute
   '/_app/invoices': typeof AppInvoicesRoute
   '/_app/projects': typeof AppProjectsRoute
+  '/_app/settings/users': typeof AppSettingsUsersRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -97,6 +106,7 @@ export interface FileRouteTypes {
     | '/equipment'
     | '/invoices'
     | '/projects'
+    | '/settings/users'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -106,6 +116,7 @@ export interface FileRouteTypes {
     | '/equipment'
     | '/invoices'
     | '/projects'
+    | '/settings/users'
   id:
     | '__root__'
     | '/'
@@ -116,6 +127,7 @@ export interface FileRouteTypes {
     | '/_app/equipment'
     | '/_app/invoices'
     | '/_app/projects'
+    | '/_app/settings/users'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -182,6 +194,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCrewRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/settings/users': {
+      id: '/_app/settings/users'
+      path: '/settings/users'
+      fullPath: '/settings/users'
+      preLoaderRoute: typeof AppSettingsUsersRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
@@ -191,6 +210,7 @@ interface AppRouteChildren {
   AppEquipmentRoute: typeof AppEquipmentRoute
   AppInvoicesRoute: typeof AppInvoicesRoute
   AppProjectsRoute: typeof AppProjectsRoute
+  AppSettingsUsersRoute: typeof AppSettingsUsersRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -199,6 +219,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppEquipmentRoute: AppEquipmentRoute,
   AppInvoicesRoute: AppInvoicesRoute,
   AppProjectsRoute: AppProjectsRoute,
+  AppSettingsUsersRoute: AppSettingsUsersRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
@@ -211,3 +232,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
