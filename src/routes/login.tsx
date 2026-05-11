@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Logo } from "@/components/Logo";
 import { toast } from "sonner";
+import { X } from "lucide-react";
 
 const searchSchema = z.object({ mode: z.enum(["signin", "signup"]).optional() });
 
@@ -51,7 +52,14 @@ function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-6">
-      <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 shadow-xl">
+      <div className="relative w-full max-w-md rounded-2xl border border-border bg-card p-8 shadow-xl">
+        <Link
+          to="/"
+          aria-label="Voltar ao início"
+          className="absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
+        >
+          <X className="h-5 w-5" />
+        </Link>
         <Link to="/" className="flex justify-center"><Logo className="h-12" /></Link>
         <h1 className="mt-6 text-center text-2xl font-bold">
           {isSignup ? "Criar conta" : "Entrar"}
