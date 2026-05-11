@@ -18,8 +18,8 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 }
 
 // Configuration
-const SITE_NAME = "Produções Eurosom"
-const ROOT_DOMAIN = "eurosom.pt"
+const SITE_NAME = "GESTio"
+const ROOT_DOMAIN = "gestio.pt"
 
 // Sample data for preview mode ONLY (not used in actual email sending).
 // URLs are baked in at scaffold time from the project's real data.
