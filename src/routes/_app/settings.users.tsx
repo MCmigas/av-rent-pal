@@ -1,5 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader } from "@/components/PageHeader";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -8,8 +9,12 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { ShieldCheck, ShieldAlert } from "lucide-react";
+import { ShieldCheck, ShieldAlert, Copy, Trash2, Mail } from "lucide-react";
 
 export const Route = createFileRoute("/_app/settings/users")({
   head: () => ({ meta: [{ title: "Utilizadores — Eurosom" }] }),
@@ -27,6 +32,34 @@ function UsersPage() {
   const qc = useQueryClient();
 
   const canManage = isAdmin || isSuperAdmin;
+
+  const locationsQ = useQuery({
+    enabled: !!organizationId,
+    queryKey: ["org-locations", organizationId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("locations")
+        .select("id, name")
+        .eq("organization_id", organizationId!)
+        .order("name");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const invitesQ = useQuery({
+    enabled: !!organizationId && canManage,
+    queryKey: ["invites", organizationId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("invites")
+        .select("id, token, email, profile_id, location_ids, expires_at, accepted_at, created_at")
+        .eq("organization_id", organizationId!)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
 
   const profilesQ = useQuery({
     enabled: !!organizationId,
@@ -80,6 +113,55 @@ function UsersPage() {
     },
     onError: (e: any) => toast.error(e.message ?? "Erro ao atualizar"),
   });
+
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteProfileId, setInviteProfileId] = useState<string>("");
+  const [inviteLocs, setInviteLocs] = useState<string[]>([]);
+
+  const createInvite = useMutation({
+    mutationFn: async () => {
+      if (!inviteEmail || !inviteProfileId) throw new Error("Email e perfil obrigatórios");
+      const { data, error } = await supabase
+        .from("invites")
+        .insert({
+          email: inviteEmail.trim().toLowerCase(),
+          organization_id: organizationId!,
+          profile_id: inviteProfileId,
+          location_ids: inviteLocs,
+          invited_by: user?.id ?? null,
+        })
+        .select("token")
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      const url = `${window.location.origin}/accept-invite?token=${data.token}`;
+      navigator.clipboard?.writeText(url).catch(() => {});
+      toast.success("Convite criado — link copiado");
+      setInviteEmail(""); setInviteProfileId(""); setInviteLocs([]);
+      qc.invalidateQueries({ queryKey: ["invites", organizationId] });
+    },
+    onError: (e: any) => toast.error(e.message ?? "Erro ao criar convite"),
+  });
+
+  const deleteInvite = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("invites").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Convite removido");
+      qc.invalidateQueries({ queryKey: ["invites", organizationId] });
+    },
+    onError: (e: any) => toast.error(e.message ?? "Erro"),
+  });
+
+  const copyLink = (token: string) => {
+    const url = `${window.location.origin}/accept-invite?token=${token}`;
+    navigator.clipboard?.writeText(url);
+    toast.success("Link copiado");
+  };
 
   if (!canManage) {
     return (
@@ -152,8 +234,99 @@ function UsersPage() {
       </div>
 
       <p className="mt-4 text-xs text-muted-foreground">
-        Não pode alterar o seu próprio perfil — peça a outro administrador. Convites por email serão adicionados na próxima fase.
+        Não pode alterar o seu próprio perfil — peça a outro administrador.
       </p>
+
+      <div className="mt-10 rounded-xl border border-border bg-card p-6">
+        <h2 className="text-lg font-semibold flex items-center gap-2"><Mail className="h-4 w-4" /> Convidar utilizador</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Cria um link de convite. Partilha-o com a pessoa — ao registar-se com o mesmo email, é automaticamente adicionada com o perfil escolhido.</p>
+        <div className="mt-4 grid gap-4 md:grid-cols-3">
+          <div className="space-y-2">
+            <Label htmlFor="inv-email">Email</Label>
+            <Input id="inv-email" type="email" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} placeholder="pessoa@empresa.pt" />
+          </div>
+          <div className="space-y-2">
+            <Label>Perfil de permissões</Label>
+            <Select value={inviteProfileId} onValueChange={setInviteProfileId}>
+              <SelectTrigger><SelectValue placeholder="Escolher perfil" /></SelectTrigger>
+              <SelectContent>
+                {profilesQ.data?.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Armazéns</Label>
+            <div className="rounded-md border border-border bg-background p-2 max-h-40 overflow-auto space-y-1">
+              {locationsQ.data?.length === 0 && <div className="px-1 py-1 text-xs text-muted-foreground">Sem armazéns.</div>}
+              {locationsQ.data?.map((l) => {
+                const checked = inviteLocs.includes(l.id);
+                return (
+                  <label key={l.id} className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 text-sm hover:bg-muted">
+                    <Checkbox
+                      checked={checked}
+                      onCheckedChange={(v) => {
+                        setInviteLocs((prev) => v ? [...prev, l.id] : prev.filter((x) => x !== l.id));
+                      }}
+                    />
+                    {l.name}
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+        <Button className="mt-4" disabled={createInvite.isPending} onClick={() => createInvite.mutate()}>
+          {createInvite.isPending ? "..." : "Criar convite e copiar link"}
+        </Button>
+      </div>
+
+      <div className="mt-6 overflow-hidden rounded-xl border border-border bg-card">
+        <div className="border-b border-border px-4 py-3 text-sm font-semibold">Convites pendentes</div>
+        <table className="w-full text-sm">
+          <thead className="bg-muted/40 text-left text-xs uppercase tracking-wider text-muted-foreground">
+            <tr>
+              <th className="px-4 py-3">Email</th>
+              <th className="px-4 py-3">Estado</th>
+              <th className="px-4 py-3">Expira</th>
+              <th className="px-4 py-3 text-right">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {invitesQ.data?.length === 0 && (
+              <tr><td colSpan={4} className="px-4 py-6 text-center text-muted-foreground">Sem convites.</td></tr>
+            )}
+            {invitesQ.data?.map((i) => (
+              <tr key={i.id} className="border-t border-border">
+                <td className="px-4 py-3">{i.email}</td>
+                <td className="px-4 py-3">
+                  {i.accepted_at
+                    ? <Badge className="bg-primary text-primary-foreground">Aceite</Badge>
+                    : new Date(i.expires_at) < new Date()
+                      ? <Badge variant="destructive">Expirado</Badge>
+                      : <Badge variant="secondary">Pendente</Badge>}
+                </td>
+                <td className="px-4 py-3 text-muted-foreground">
+                  {new Date(i.expires_at).toLocaleDateString("pt-PT")}
+                </td>
+                <td className="px-4 py-3 text-right">
+                  {!i.accepted_at && (
+                    <div className="inline-flex gap-1">
+                      <Button size="sm" variant="ghost" onClick={() => copyLink(i.token)}>
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => deleteInvite.mutate(i.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </>
   );
 }
