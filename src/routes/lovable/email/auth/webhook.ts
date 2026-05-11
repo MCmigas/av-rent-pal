@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { renderAsync } from '@react-email/components'
+import { render } from '@react-email/components'
 import { parseEmailWebhookPayload } from '@lovable.dev/email-js'
 import { WebhookError, verifyWebhookRequest } from '@lovable.dev/webhooks-js'
 import { createClient } from '@supabase/supabase-js'
@@ -12,12 +12,12 @@ import { EmailChangeEmail } from '@/lib/email-templates/email-change'
 import { ReauthenticationEmail } from '@/lib/email-templates/reauthentication'
 
 const EMAIL_SUBJECTS: Record<string, string> = {
-  signup: 'Confirm your email',
-  invite: "You've been invited",
-  magiclink: 'Your login link',
-  recovery: 'Reset your password',
-  email_change: 'Confirm your new email',
-  reauthentication: 'Your verification code',
+  signup: 'Confirme o seu email — GESTio',
+  invite: 'Foi convidado para a GESTio',
+  magiclink: 'O seu link de acesso à GESTio',
+  recovery: 'Recuperação de palavra-passe — GESTio',
+  email_change: 'Confirme o novo email — GESTio',
+  reauthentication: 'Código de verificação — GESTio',
 }
 
 // Template mapping
@@ -31,9 +31,9 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 }
 
 // Configuration
-const SITE_NAME = "Produções Eurosom"
+const SITE_NAME = "GESTio"
 const SENDER_DOMAIN = "notify.eurosom.pt"
-const ROOT_DOMAIN = "eurosom.pt"
+const ROOT_DOMAIN = "gestio.pt"
 const FROM_DOMAIN = "notify.eurosom.pt"
 
 function redactEmail(email: string | null | undefined): string {
@@ -145,8 +145,8 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
 
         // Render React Email to HTML and plain text
         const element = React.createElement(EmailTemplate, templateProps)
-        const html = await renderAsync(element)
-        const text = await renderAsync(element, { plainText: true })
+        const html = await render(element)
+        const text = await render(element, { plainText: true })
 
         // Enqueue email for async processing by the dispatcher (process-email-queue).
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
