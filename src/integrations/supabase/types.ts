@@ -463,25 +463,34 @@ export type Database = {
           created_at: string
           equipment_id: string
           id: string
+          notes: string | null
+          pickup_date: string | null
           project_id: string
           quantity: number
           rate: number
+          return_date: string | null
         }
         Insert: {
           created_at?: string
           equipment_id: string
           id?: string
+          notes?: string | null
+          pickup_date?: string | null
           project_id: string
           quantity?: number
           rate?: number
+          return_date?: string | null
         }
         Update: {
           created_at?: string
           equipment_id?: string
           id?: string
+          notes?: string | null
+          pickup_date?: string | null
           project_id?: string
           quantity?: number
           rate?: number
+          return_date?: string | null
         }
         Relationships: [
           {
@@ -760,6 +769,24 @@ export type Database = {
     Functions: {
       accept_invite: { Args: { _token: string }; Returns: string }
       cleanup_old_audit_data: { Args: never; Returns: undefined }
+      equipment_availability: {
+        Args: {
+          _equipment_id: string
+          _exclude_pe_id?: string
+          _from: string
+          _to: string
+        }
+        Returns: number
+      }
+      equipment_booked_quantity: {
+        Args: {
+          _equipment_id: string
+          _exclude_pe_id?: string
+          _from: string
+          _to: string
+        }
+        Returns: number
+      }
       get_invite_by_token: {
         Args: { _token: string }
         Returns: {
