@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, addMonths,
@@ -210,12 +210,13 @@ function ReservationDialog({
   const [notes, setNotes] = useState("");
 
   // Reset on open
-  useMemo(() => {
+  useEffect(() => {
     if (open) {
       setPickup(toInput(defaultDate ?? new Date()));
       setReturnD(toInput(defaultDate ? addDays(defaultDate, 1) : addDays(new Date(), 1)));
       setQuantity(1); setNotes("");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, defaultDate]);
 
   const equipQ = useQuery({
