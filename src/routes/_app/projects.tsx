@@ -114,7 +114,7 @@ function ProjectsPage() {
   const convertToInvoice = useMutation({
     mutationFn: async (p: P) => {
       const { data, error } = await supabase.rpc("convert_project_to_invoice", {
-        _project_id: p.id, _due_date: null,
+        _project_id: p.id,
       });
       if (error) throw error;
       return data as string;
