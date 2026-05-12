@@ -10,10 +10,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, FileText, Receipt } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { fmtMoney, fmtDate } from "@/lib/format";
+import { generateDocPdf } from "@/lib/pdf";
 
 export const Route = createFileRoute("/_app/projects")({
   head: () => ({ meta: [{ title: "Projetos — Eurosom" }] }),
@@ -55,6 +56,70 @@ function ProjectsPage() {
   const del = useMutation({
     mutationFn: async (id: string) => { const { error } = await supabase.from("projects").delete().eq("id", id); if (error) throw error; },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["projects"] }); toast.success("Eliminado"); },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const buildItemsForProject = async (projectId: string) => {
+    const [{ data: pe }, { data: ca }] = await Promise.all([
+      supabase.from("project_equipment")
+        .select("quantity, rate, pickup_date, return_date, equipment:equipment_id(name)")
+        .eq("project_id", projectId),
+      supabase.from("crew_assignments")
+        .select("daily_rate, role, start_date, end_date, profiles:user_id(full_name)")
+        .eq("project_id", projectId),
+    ]);
+    const dayDiff = (a?: string|null, b?: string|null) => {
+      if (!a || !b) return 1;
+      return Math.max(1, Math.ceil((new Date(b).getTime() - new Date(a).getTime()) / 86400000) + 1);
+    };
+    const items: { description: string; quantity: number; unit_price: number }[] = [];
+    (pe ?? []).forEach((r: any) => {
+      const d = dayDiff(r.pickup_date, r.return_date);
+      items.push({
+        description: `${r.equipment?.name ?? "Equipamento"} (${d} dia${d>1?"s":""})`,
+        quantity: r.quantity,
+        unit_price: Number(r.rate) * d,
+      });
+    });
+    (ca ?? []).forEach((r: any) => {
+      const d = dayDiff(r.start_date, r.end_date);
+      items.push({
+        description: `Crew — ${r.profiles?.full_name ?? r.role} (${r.role}, ${d}d)`,
+        quantity: 1,
+        unit_price: Number(r.daily_rate) * d,
+      });
+    });
+    return items;
+  };
+
+  const generateQuote = async (p: P) => {
+    try {
+      const items = await buildItemsForProject(p.id);
+      if (items.length === 0) {
+        items.push({ description: p.title, quantity: 1, unit_price: Number(p.total_amount) });
+      }
+      const { data: orgs } = await supabase.from("organizations").select("name, address, tax_id, email, phone").limit(1);
+      await generateDocPdf({
+        kind: "quote",
+        number: `ORC-${p.id.slice(0, 8).toUpperCase()}`,
+        issue_date: new Date().toISOString(),
+        title: p.title, client_name: p.client_name, venue: p.venue,
+        start_date: p.start_date, end_date: p.end_date, notes: p.notes,
+        items, org: orgs?.[0] ?? {},
+      });
+      toast.success("Orçamento gerado");
+    } catch (e: any) { toast.error(e.message ?? "Erro ao gerar PDF"); }
+  };
+
+  const convertToInvoice = useMutation({
+    mutationFn: async (p: P) => {
+      const { data, error } = await supabase.rpc("convert_project_to_invoice", {
+        _project_id: p.id,
+      });
+      if (error) throw error;
+      return data as string;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["projects"] }); toast.success("Fatura criada — vê em Faturas"); },
     onError: (e: any) => toast.error(e.message),
   });
 
@@ -123,6 +188,11 @@ function ProjectsPage() {
                 <TableCell><Badge variant={p.status === "completed" ? "outline" : "default"}>{p.status}</Badge></TableCell>
                 <TableCell>{fmtMoney(Number(p.total_amount))}</TableCell>
                 <TableCell className="text-right">
+                  <Button variant="ghost" size="icon" title="PDF orçamento" onClick={() => generateQuote(p)}><FileText className="h-4 w-4" /></Button>
+                  <Button variant="ghost" size="icon" title="Converter em fatura"
+                    onClick={() => confirm(`Converter "${p.title}" em fatura?`) && convertToInvoice.mutate(p)}>
+                    <Receipt className="h-4 w-4" />
+                  </Button>
                   <Button variant="ghost" size="icon" onClick={() => { setEdit(p); setOpen(true); }}><Pencil className="h-4 w-4" /></Button>
                   <Button variant="ghost" size="icon" onClick={() => confirm("Eliminar?") && del.mutate(p.id)}><Trash2 className="h-4 w-4" /></Button>
                 </TableCell>

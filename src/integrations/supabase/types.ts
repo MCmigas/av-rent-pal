@@ -215,11 +215,85 @@ export type Database = {
           },
         ]
       }
+      invoice_items: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          invoice_id: string
+          line_total: number | null
+          quantity: number
+          sort_order: number
+          unit_price: number
+          vat_rate: number
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          invoice_id: string
+          line_total?: number | null
+          quantity?: number
+          sort_order?: number
+          unit_price?: number
+          vat_rate?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          invoice_id?: string
+          line_total?: number | null
+          quantity?: number
+          sort_order?: number
+          unit_price?: number
+          vat_rate?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoice_sequences: {
+        Row: {
+          last_number: number
+          organization_id: string
+          prefix: string
+          year: number
+        }
+        Insert: {
+          last_number?: number
+          organization_id: string
+          prefix?: string
+          year: number
+        }
+        Update: {
+          last_number?: number
+          organization_id?: string
+          prefix?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_sequences_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoices: {
         Row: {
           amount: number
           client_id: string | null
           created_at: string
+          currency: string
           due_date: string | null
           id: string
           invoice_number: string
@@ -228,13 +302,19 @@ export type Database = {
           notes: string | null
           organization_id: string
           project_id: string | null
+          quote_project_id: string | null
           status: string
+          subtotal: number
+          terms: string | null
           updated_at: string
+          vat_amount: number
+          vat_rate: number
         }
         Insert: {
           amount?: number
           client_id?: string | null
           created_at?: string
+          currency?: string
           due_date?: string | null
           id?: string
           invoice_number: string
@@ -243,13 +323,19 @@ export type Database = {
           notes?: string | null
           organization_id: string
           project_id?: string | null
+          quote_project_id?: string | null
           status?: string
+          subtotal?: number
+          terms?: string | null
           updated_at?: string
+          vat_amount?: number
+          vat_rate?: number
         }
         Update: {
           amount?: number
           client_id?: string | null
           created_at?: string
+          currency?: string
           due_date?: string | null
           id?: string
           invoice_number?: string
@@ -258,8 +344,13 @@ export type Database = {
           notes?: string | null
           organization_id?: string
           project_id?: string | null
+          quote_project_id?: string | null
           status?: string
+          subtotal?: number
+          terms?: string | null
           updated_at?: string
+          vat_amount?: number
+          vat_rate?: number
         }
         Relationships: [
           {
@@ -286,6 +377,13 @@ export type Database = {
           {
             foreignKeyName: "invoices_project_id_fkey"
             columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_quote_project_id_fkey"
+            columns: ["quote_project_id"]
             isOneToOne: false
             referencedRelation: "projects"
             referencedColumns: ["id"]
@@ -769,6 +867,10 @@ export type Database = {
     Functions: {
       accept_invite: { Args: { _token: string }; Returns: string }
       cleanup_old_audit_data: { Args: never; Returns: undefined }
+      convert_project_to_invoice: {
+        Args: { _due_date?: string; _project_id: string }
+        Returns: string
+      }
       equipment_availability: {
         Args: {
           _equipment_id: string
@@ -823,6 +925,7 @@ export type Database = {
         }
         Returns: string
       }
+      next_invoice_number: { Args: { _org_id: string }; Returns: string }
       user_has_permission: {
         Args: { _permission: string; _user_id?: string }
         Returns: boolean
