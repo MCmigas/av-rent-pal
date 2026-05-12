@@ -206,6 +206,72 @@ function Legend({ color, label }: { color: string; label: string }) {
   );
 }
 
+/* ---------- Export helpers ---------- */
+
+const fmt = (d?: string | null) =>
+  d ? format(new Date(d), "dd/MM/yyyy HH:mm", { locale: pt }) : "—";
+
+function buildRows(bookings: Booking[]) {
+  return bookings
+    .slice()
+    .sort((a, b) => {
+      const sa = a.pickup_date ?? a.projects?.start_date ?? "";
+      const sb = b.pickup_date ?? b.projects?.start_date ?? "";
+      return sa.localeCompare(sb);
+    })
+    .map((b) => ({
+      projeto: b.projects?.title ?? "—",
+      estado: b.projects?.status ?? "—",
+      equipamento: b.equipment?.name ?? "—",
+      qtd: b.quantity,
+      recolha: fmt(b.pickup_date ?? b.projects?.start_date),
+      devolucao: fmt(b.return_date ?? b.projects?.end_date),
+      notas: (b.notes ?? "").replace(/\s+/g, " "),
+    }));
+}
+
+function exportCsv(bookings: Booking[], cursor: Date) {
+  const rows = buildRows(bookings);
+  const header = ["Projeto", "Estado", "Equipamento", "Qtd", "Recolha", "Devolução", "Notas"];
+  const esc = (v: any) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const csv = [
+    header.map(esc).join(","),
+    ...rows.map((r) => [r.projeto, r.estado, r.equipamento, r.qtd, r.recolha, r.devolucao, r.notas].map(esc).join(",")),
+  ].join("\n");
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `reservas_${format(cursor, "yyyy-MM")}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast.success("CSV exportado");
+}
+
+function exportPdf(bookings: Booking[], cursor: Date) {
+  const rows = buildRows(bookings);
+  const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
+  const title = `Reservas — ${format(cursor, "MMMM 'de' yyyy", { locale: pt })}`;
+  doc.setFontSize(16);
+  doc.text("Eurosom", 40, 40);
+  doc.setFontSize(12);
+  doc.text(title, 40, 60);
+  doc.setFontSize(9);
+  doc.text(`Gerado em ${format(new Date(), "dd/MM/yyyy HH:mm", { locale: pt })}`, 40, 75);
+
+  autoTable(doc, {
+    startY: 90,
+    head: [["Projeto", "Estado", "Equipamento", "Qtd", "Recolha", "Devolução", "Notas"]],
+    body: rows.map((r) => [r.projeto, r.estado, r.equipamento, r.qtd, r.recolha, r.devolucao, r.notas]),
+    styles: { fontSize: 9, cellPadding: 4 },
+    headStyles: { fillColor: [232, 185, 35], textColor: 20 },
+    columnStyles: { 3: { halign: "right" }, 6: { cellWidth: 180 } },
+  });
+
+  doc.save(`reservas_${format(cursor, "yyyy-MM")}.pdf`);
+  toast.success("PDF exportado");
+}
+
 /* ---------- Reservation dialog ---------- */
 
 type Eq = { id: string; name: string; quantity: number };
