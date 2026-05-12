@@ -6,7 +6,9 @@ import {
   format, isSameMonth, isSameDay, parseISO,
 } from "date-fns";
 import { pt } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Download, FileText } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -16,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/calendar")({
@@ -99,9 +102,26 @@ function CalendarPage() {
   return (
     <>
       <PageHeader title="Calendário de aluguer" subtitle="Reservas e disponibilidade de equipamento">
-        <Button onClick={() => { setDefaultDate(null); setOpen(true); }}>
-          <Plus className="mr-2 h-4 w-4" /> Nova reserva
-        </Button>
+        <div className="flex gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                <Download className="mr-2 h-4 w-4" /> Exportar
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => exportCsv(bookings, cursor)}>
+                <FileText className="mr-2 h-4 w-4" /> CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => exportPdf(bookings, cursor)}>
+                <FileText className="mr-2 h-4 w-4" /> PDF
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button onClick={() => { setDefaultDate(null); setOpen(true); }}>
+            <Plus className="mr-2 h-4 w-4" /> Nova reserva
+          </Button>
+        </div>
       </PageHeader>
 
       <div className="rounded-xl border border-border bg-card p-4">
