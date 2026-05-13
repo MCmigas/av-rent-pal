@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { fmtMoney } from "@/lib/format";
 import type { Kit, KitItem, Equipment } from "./types";
 
-type KitWithItems = Kit & { items: (KitItem & { equipment: Pick<Equipment, "name" | "category"> })[] };
+type KitWithItems = Kit & { items: (KitItem & { equipmentName?: string })[] };
 
 export function KitsView() {
   const qc = useQueryClient();
@@ -26,11 +26,18 @@ export function KitsView() {
   const { data: kits = [] } = useQuery({
     queryKey: ["kits"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("equipment_kits")
-        .select("*, items:kit_items(id, equipment_id, quantity, equipment:equipment(name, category))")
-        .order("name");
-      if (error) throw error;
-      return data as KitWithItems[];
+      const [{ data: ks, error: e1 }, { data: its, error: e2 }, { data: eq, error: e3 }] = await Promise.all([
+        supabase.from("equipment_kits").select("*").order("name"),
+        supabase.from("kit_items").select("*"),
+        supabase.from("equipment").select("id, name"),
+      ]);
+      if (e1) throw e1; if (e2) throw e2; if (e3) throw e3;
+      const eqMap = new Map((eq ?? []).map((e: any) => [e.id, e.name]));
+      return (ks ?? []).map((k: any) => ({
+        ...k,
+        items: (its ?? []).filter((i: any) => i.kit_id === k.id)
+          .map((i: any) => ({ ...i, equipmentName: eqMap.get(i.equipment_id) })),
+      })) as KitWithItems[];
     },
   });
 
@@ -109,7 +116,7 @@ export function KitsView() {
             <div className="space-y-1 mb-3">
               {k.items.map((i) => (
                 <div key={i.id} className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">{i.equipment?.name ?? "—"}</span>
+                  <span className="text-muted-foreground">{i.equipmentName ?? "—"}</span>
                   <Badge variant="outline" className="text-xs">×{i.quantity}</Badge>
                 </div>
               ))}
