@@ -20,6 +20,8 @@ import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppCrewRouteImport } from './routes/_app/crew'
 import { Route as AppCalendarRouteImport } from './routes/_app/calendar'
 import { Route as AppSettingsUsersRouteImport } from './routes/_app/settings.users'
+import { Route as AppProjectsTemplatesRouteImport } from './routes/_app/projects.templates'
+import { Route as AppProjectsIdRouteImport } from './routes/_app/projects.$id'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 
@@ -77,6 +79,16 @@ const AppSettingsUsersRoute = AppSettingsUsersRouteImport.update({
   path: '/settings/users',
   getParentRoute: () => AppRoute,
 } as any)
+const AppProjectsTemplatesRoute = AppProjectsTemplatesRouteImport.update({
+  id: '/templates',
+  path: '/templates',
+  getParentRoute: () => AppProjectsRoute,
+} as any)
+const AppProjectsIdRoute = AppProjectsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AppProjectsRoute,
+} as any)
 const LovableEmailAuthWebhookRoute = LovableEmailAuthWebhookRouteImport.update({
   id: '/lovable/email/auth/webhook',
   path: '/lovable/email/auth/webhook',
@@ -97,7 +109,9 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AppDashboardRoute
   '/equipment': typeof AppEquipmentRoute
   '/invoices': typeof AppInvoicesRoute
-  '/projects': typeof AppProjectsRoute
+  '/projects': typeof AppProjectsRouteWithChildren
+  '/projects/$id': typeof AppProjectsIdRoute
+  '/projects/templates': typeof AppProjectsTemplatesRoute
   '/settings/users': typeof AppSettingsUsersRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -111,7 +125,9 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AppDashboardRoute
   '/equipment': typeof AppEquipmentRoute
   '/invoices': typeof AppInvoicesRoute
-  '/projects': typeof AppProjectsRoute
+  '/projects': typeof AppProjectsRouteWithChildren
+  '/projects/$id': typeof AppProjectsIdRoute
+  '/projects/templates': typeof AppProjectsTemplatesRoute
   '/settings/users': typeof AppSettingsUsersRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -127,7 +143,9 @@ export interface FileRoutesById {
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/equipment': typeof AppEquipmentRoute
   '/_app/invoices': typeof AppInvoicesRoute
-  '/_app/projects': typeof AppProjectsRoute
+  '/_app/projects': typeof AppProjectsRouteWithChildren
+  '/_app/projects/$id': typeof AppProjectsIdRoute
+  '/_app/projects/templates': typeof AppProjectsTemplatesRoute
   '/_app/settings/users': typeof AppSettingsUsersRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -144,6 +162,8 @@ export interface FileRouteTypes {
     | '/equipment'
     | '/invoices'
     | '/projects'
+    | '/projects/$id'
+    | '/projects/templates'
     | '/settings/users'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -158,6 +178,8 @@ export interface FileRouteTypes {
     | '/equipment'
     | '/invoices'
     | '/projects'
+    | '/projects/$id'
+    | '/projects/templates'
     | '/settings/users'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -173,6 +195,8 @@ export interface FileRouteTypes {
     | '/_app/equipment'
     | '/_app/invoices'
     | '/_app/projects'
+    | '/_app/projects/$id'
+    | '/_app/projects/templates'
     | '/_app/settings/users'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -266,6 +290,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsUsersRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/projects/templates': {
+      id: '/_app/projects/templates'
+      path: '/templates'
+      fullPath: '/projects/templates'
+      preLoaderRoute: typeof AppProjectsTemplatesRouteImport
+      parentRoute: typeof AppProjectsRoute
+    }
+    '/_app/projects/$id': {
+      id: '/_app/projects/$id'
+      path: '/$id'
+      fullPath: '/projects/$id'
+      preLoaderRoute: typeof AppProjectsIdRouteImport
+      parentRoute: typeof AppProjectsRoute
+    }
     '/lovable/email/auth/webhook': {
       id: '/lovable/email/auth/webhook'
       path: '/lovable/email/auth/webhook'
@@ -283,13 +321,27 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AppProjectsRouteChildren {
+  AppProjectsIdRoute: typeof AppProjectsIdRoute
+  AppProjectsTemplatesRoute: typeof AppProjectsTemplatesRoute
+}
+
+const AppProjectsRouteChildren: AppProjectsRouteChildren = {
+  AppProjectsIdRoute: AppProjectsIdRoute,
+  AppProjectsTemplatesRoute: AppProjectsTemplatesRoute,
+}
+
+const AppProjectsRouteWithChildren = AppProjectsRoute._addFileChildren(
+  AppProjectsRouteChildren,
+)
+
 interface AppRouteChildren {
   AppCalendarRoute: typeof AppCalendarRoute
   AppCrewRoute: typeof AppCrewRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppEquipmentRoute: typeof AppEquipmentRoute
   AppInvoicesRoute: typeof AppInvoicesRoute
-  AppProjectsRoute: typeof AppProjectsRoute
+  AppProjectsRoute: typeof AppProjectsRouteWithChildren
   AppSettingsUsersRoute: typeof AppSettingsUsersRoute
 }
 
@@ -299,7 +351,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppDashboardRoute: AppDashboardRoute,
   AppEquipmentRoute: AppEquipmentRoute,
   AppInvoicesRoute: AppInvoicesRoute,
-  AppProjectsRoute: AppProjectsRoute,
+  AppProjectsRoute: AppProjectsRouteWithChildren,
   AppSettingsUsersRoute: AppSettingsUsersRoute,
 }
 
