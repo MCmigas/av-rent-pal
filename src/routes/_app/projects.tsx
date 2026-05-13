@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader } from "@/components/PageHeader";
@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2, FileText, Receipt } from "lucide-react";
+import { Plus, Pencil, Trash2, FileText, Receipt, ExternalLink, LayoutTemplate } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { fmtMoney, fmtDate } from "@/lib/format";
@@ -128,6 +128,7 @@ function ProjectsPage() {
   return (
     <>
       <PageHeader title="Projetos" subtitle="Orçamentos, eventos e produções">
+        <Button asChild variant="outline"><Link to="/projects/templates"><LayoutTemplate className="mr-2 h-4 w-4" />Templates</Link></Button>
         <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setEdit(empty); }}>
           <DialogTrigger asChild><Button onClick={() => setEdit(empty)}><Plus className="mr-2 h-4 w-4" />Novo projeto</Button></DialogTrigger>
           <DialogContent>
@@ -188,6 +189,9 @@ function ProjectsPage() {
                 <TableCell><Badge variant={p.status === "completed" ? "outline" : "default"}>{p.status}</Badge></TableCell>
                 <TableCell>{fmtMoney(Number(p.total_amount))}</TableCell>
                 <TableCell className="text-right">
+                  <Button asChild variant="ghost" size="icon" title="Abrir detalhe">
+                    <Link to="/projects/$id" params={{ id: p.id }}><ExternalLink className="h-4 w-4" /></Link>
+                  </Button>
                   <Button variant="ghost" size="icon" title="PDF orçamento" onClick={() => generateQuote(p)}><FileText className="h-4 w-4" /></Button>
                   <Button variant="ghost" size="icon" title="Converter em fatura"
                     onClick={() => confirm(`Converter "${p.title}" em fatura?`) && convertToInvoice.mutate(p)}>
