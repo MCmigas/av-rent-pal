@@ -96,14 +96,19 @@ export type Database = {
         Row: {
           brand: string | null
           category: string
+          condition: string
           created_at: string
           daily_rate: number
           id: string
+          image_url: string | null
           location_id: string | null
+          manual_url: string | null
           model: string | null
           name: string
           notes: string | null
           organization_id: string
+          purchase_date: string | null
+          purchase_price: number | null
           quantity: number
           serial_number: string | null
           status: string
@@ -112,14 +117,19 @@ export type Database = {
         Insert: {
           brand?: string | null
           category?: string
+          condition?: string
           created_at?: string
           daily_rate?: number
           id?: string
+          image_url?: string | null
           location_id?: string | null
+          manual_url?: string | null
           model?: string | null
           name: string
           notes?: string | null
           organization_id: string
+          purchase_date?: string | null
+          purchase_price?: number | null
           quantity?: number
           serial_number?: string | null
           status?: string
@@ -128,14 +138,19 @@ export type Database = {
         Update: {
           brand?: string | null
           category?: string
+          condition?: string
           created_at?: string
           daily_rate?: number
           id?: string
+          image_url?: string | null
           location_id?: string | null
+          manual_url?: string | null
           model?: string | null
           name?: string
           notes?: string | null
           organization_id?: string
+          purchase_date?: string | null
+          purchase_price?: number | null
           quantity?: number
           serial_number?: string | null
           status?: string
@@ -157,6 +172,81 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      equipment_kits: {
+        Row: {
+          active: boolean
+          created_at: string
+          daily_rate: number
+          description: string | null
+          id: string
+          location_id: string | null
+          name: string
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          daily_rate?: number
+          description?: string | null
+          id?: string
+          location_id?: string | null
+          name: string
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          daily_rate?: number
+          description?: string | null
+          id?: string
+          location_id?: string | null
+          name?: string
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      equipment_maintenance: {
+        Row: {
+          cost: number
+          created_at: string
+          description: string | null
+          equipment_id: string
+          id: string
+          next_due: string | null
+          organization_id: string
+          performed_at: string
+          performed_by: string | null
+          type: string
+        }
+        Insert: {
+          cost?: number
+          created_at?: string
+          description?: string | null
+          equipment_id: string
+          id?: string
+          next_due?: string | null
+          organization_id: string
+          performed_at?: string
+          performed_by?: string | null
+          type?: string
+        }
+        Update: {
+          cost?: number
+          created_at?: string
+          description?: string | null
+          equipment_id?: string
+          id?: string
+          next_due?: string | null
+          organization_id?: string
+          performed_at?: string
+          performed_by?: string | null
+          type?: string
+        }
+        Relationships: []
       }
       invites: {
         Row: {
@@ -386,6 +476,38 @@ export type Database = {
             columns: ["quote_project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kit_items: {
+        Row: {
+          created_at: string
+          equipment_id: string
+          id: string
+          kit_id: string
+          quantity: number
+        }
+        Insert: {
+          created_at?: string
+          equipment_id: string
+          id?: string
+          kit_id: string
+          quantity?: number
+        }
+        Update: {
+          created_at?: string
+          equipment_id?: string
+          id?: string
+          kit_id?: string
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kit_items_kit_id_fkey"
+            columns: ["kit_id"]
+            isOneToOne: false
+            referencedRelation: "equipment_kits"
             referencedColumns: ["id"]
           },
         ]
