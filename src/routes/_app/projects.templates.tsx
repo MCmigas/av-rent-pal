@@ -140,10 +140,10 @@ function TemplatesPage() {
             tmpl={tmpls.find((t) => t.id === activeId)!}
             items={items}
             equipList={equipList}
-            onAdd={(k) => addItem.mutate(k)}
-            onUpdate={(r) => updateItem.mutate(r)}
-            onDelItem={(id) => delItem.mutate(id)}
-            onEdit={(t) => { setEdit(t); setOpen(true); }}
+            onAdd={(k: "equipment"|"crew") => addItem.mutate(k)}
+            onUpdate={(r: Partial<TItem> & { id: string }) => updateItem.mutate(r)}
+            onDelItem={(id: string) => delItem.mutate(id)}
+            onEdit={(t: Partial<Tmpl>) => { setEdit(t); setOpen(true); }}
             onDelete={() => confirm("Eliminar template?") && del.mutate(activeId)}
             onApply={() => setApplyOpen(activeId)}
           />}
