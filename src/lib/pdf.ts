@@ -124,37 +124,70 @@ export async function generateDocPdf(p: DocPayload) {
     y += 6;
   }
 
-  // Items table
+  // Items table — optionally grouped by section
   const vatRate = p.vat_rate ?? 23;
-  const rows = p.items.map((it) => {
-    const total = it.quantity * it.unit_price;
-    return [
+  const SECTION_LABELS: Record<string, string> = {
+    pa: "Sistema PA",
+    monitor: "Monitorização",
+    lighting: "Iluminação",
+    backline: "Backline",
+    video: "Vídeo",
+    rigging: "Estruturas / Rigging",
+    transport: "Transporte e logística",
+    crew: "Equipa técnica",
+    other: "Outros",
+  };
+  const groups: Record<string, DocItem[]> = {};
+  if (p.group_by_section) {
+    p.items.forEach((it) => {
+      const k = it.section || "other";
+      (groups[k] ||= []).push(it);
+    });
+  } else {
+    groups["__all__"] = p.items;
+  }
+  const orderedKeys = ["pa","monitor","lighting","backline","video","rigging","crew","transport","other"]
+    .filter((k) => groups[k]?.length)
+    .concat(p.group_by_section ? [] : ["__all__"]);
+
+  let runningY = y;
+  for (const key of orderedKeys) {
+    const arr = groups[key];
+    if (!arr?.length) continue;
+    if (p.group_by_section) {
+      doc.setFontSize(10);
+      doc.setTextColor(40);
+      doc.setFont("helvetica", "bold");
+      doc.text(SECTION_LABELS[key] ?? key, M, runningY);
+      doc.setFont("helvetica", "normal");
+      runningY += 6;
+    }
+    const rows = arr.map((it) => [
       it.description,
       it.quantity.toString(),
       fmtEur(it.unit_price),
-      fmtEur(total),
-    ];
-  });
-
-  autoTable(doc, {
-    startY: y,
-    head: [["Descrição", "Qtd", "Preço unit.", "Total"]],
-    body: rows,
-    styles: { fontSize: 9, cellPadding: 6 },
-    headStyles: { fillColor: [232, 185, 35], textColor: 20, fontStyle: "bold" },
-    columnStyles: {
-      1: { halign: "right", cellWidth: 50 },
-      2: { halign: "right", cellWidth: 90 },
-      3: { halign: "right", cellWidth: 90 },
-    },
-  });
+      fmtEur(it.quantity * it.unit_price),
+    ]);
+    autoTable(doc, {
+      startY: runningY,
+      head: [["Descrição", "Qtd", "Preço unit.", "Total"]],
+      body: rows,
+      styles: { fontSize: 9, cellPadding: 6 },
+      headStyles: { fillColor: [232, 185, 35], textColor: 20, fontStyle: "bold" },
+      columnStyles: {
+        1: { halign: "right", cellWidth: 50 },
+        2: { halign: "right", cellWidth: 90 },
+        3: { halign: "right", cellWidth: 90 },
+      },
+    });
+    runningY = (doc as any).lastAutoTable.finalY + 12;
+  }
 
   const subtotal = p.items.reduce((s, it) => s + it.quantity * it.unit_price, 0);
   const vat = +(subtotal * (vatRate / 100)).toFixed(2);
   const total = +(subtotal + vat).toFixed(2);
 
-  // @ts-ignore lastAutoTable injected by autotable
-  let ty = (doc as any).lastAutoTable.finalY + 16;
+  let ty = runningY + 4;
 
   doc.setFontSize(10);
   doc.setTextColor(20);
@@ -169,6 +202,58 @@ export async function generateDocPdf(p: DocPayload) {
   doc.text("TOTAL", labelX, ty); doc.text(fmtEur(total), valueX, ty, { align: "right" });
   doc.setFont("helvetica", "normal");
   ty += 28;
+
+  // Tiers comparison
+  if (p.tiers && p.tiers.length) {
+    doc.setFontSize(11);
+    doc.setTextColor(20);
+    doc.setFont("helvetica", "bold");
+    doc.text("Opções disponíveis", M, ty);
+    doc.setFont("helvetica", "normal");
+    ty += 8;
+    autoTable(doc, {
+      startY: ty,
+      head: [["Pacote", "Descrição", "Investimento (s/IVA)"]],
+      body: p.tiers.map((t) => [t.label, t.description ?? "", fmtEur(t.amount)]),
+      styles: { fontSize: 9, cellPadding: 6 },
+      headStyles: { fillColor: [40, 40, 40], textColor: 240, fontStyle: "bold" },
+      columnStyles: { 2: { halign: "right", cellWidth: 110 } },
+    });
+    ty = (doc as any).lastAutoTable.finalY + 16;
+  }
+
+  // Included / Excluded
+  if ((p.included && p.included.length) || (p.excluded && p.excluded.length)) {
+    const colW = (W - M * 2 - 16) / 2;
+    const startY = ty;
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(20);
+    if (p.included?.length) {
+      doc.setTextColor(20, 110, 60);
+      doc.text("✓ Inclui", M, startY);
+    }
+    if (p.excluded?.length) {
+      doc.setTextColor(150, 50, 40);
+      doc.text("✗ Não inclui", M + colW + 16, startY);
+    }
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(40);
+    doc.setFontSize(9);
+    let leftY = startY + 14;
+    let rightY = startY + 14;
+    (p.included ?? []).forEach((s) => {
+      const lines = doc.splitTextToSize(`• ${s}`, colW);
+      doc.text(lines, M, leftY);
+      leftY += lines.length * 11 + 2;
+    });
+    (p.excluded ?? []).forEach((s) => {
+      const lines = doc.splitTextToSize(`• ${s}`, colW);
+      doc.text(lines, M + colW + 16, rightY);
+      rightY += lines.length * 11 + 2;
+    });
+    ty = Math.max(leftY, rightY) + 12;
+  }
 
   // Notes / terms
   doc.setFontSize(9);
