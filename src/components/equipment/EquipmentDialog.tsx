@@ -29,10 +29,10 @@ export function EquipmentDialog({ open, onOpenChange, item }: {
 
   useEffect(() => {
     if (open) {
-      setForm(item?.id ? item : {
+      setForm(item?.id ? (item as Partial<Equipment>) : {
         category: "audio", quantity: 1, daily_rate: 0, status: "available",
         condition: "good", location_id: activeLocationId ?? null,
-        ...item,
+        ...(item ?? {}),
       });
     }
   }, [open, item, activeLocationId]);
@@ -68,7 +68,7 @@ export function EquipmentDialog({ open, onOpenChange, item }: {
       const { error } = await supabase.storage.from("equipment").upload(path, file, { upsert: true });
       if (error) throw error;
       const { data } = supabase.storage.from("equipment").getPublicUrl(path);
-      setForm((f) => ({ ...f, [kind === "image" ? "image_url" : "manual_url"]: data.publicUrl }));
+      setForm((f: Partial<Equipment>) => ({ ...f, [kind === "image" ? "image_url" : "manual_url"]: data.publicUrl }));
     } catch (e: any) {
       toast.error(e.message);
     } finally {
