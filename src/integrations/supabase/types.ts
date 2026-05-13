@@ -46,32 +46,38 @@ export type Database = {
       }
       crew_assignments: {
         Row: {
+          cost_rate: number
           created_at: string
           daily_rate: number
           end_date: string | null
           id: string
           project_id: string
           role: string
+          section: string
           start_date: string | null
           user_id: string
         }
         Insert: {
+          cost_rate?: number
           created_at?: string
           daily_rate?: number
           end_date?: string | null
           id?: string
           project_id: string
           role?: string
+          section?: string
           start_date?: string | null
           user_id: string
         }
         Update: {
+          cost_rate?: number
           created_at?: string
           daily_rate?: number
           end_date?: string | null
           id?: string
           project_id?: string
           role?: string
+          section?: string
           start_date?: string | null
           user_id?: string
         }
@@ -99,8 +105,10 @@ export type Database = {
           condition: string
           created_at: string
           daily_rate: number
+          highlight: string | null
           id: string
           image_url: string | null
+          internal_cost_per_day: number
           location_id: string | null
           manual_url: string | null
           model: string | null
@@ -120,8 +128,10 @@ export type Database = {
           condition?: string
           created_at?: string
           daily_rate?: number
+          highlight?: string | null
           id?: string
           image_url?: string | null
+          internal_cost_per_day?: number
           location_id?: string | null
           manual_url?: string | null
           model?: string | null
@@ -141,8 +151,10 @@ export type Database = {
           condition?: string
           created_at?: string
           daily_rate?: number
+          highlight?: string | null
           id?: string
           image_url?: string | null
+          internal_cost_per_day?: number
           location_id?: string | null
           manual_url?: string | null
           model?: string | null
@@ -680,6 +692,7 @@ export type Database = {
       }
       project_equipment: {
         Row: {
+          cost_rate: number
           created_at: string
           equipment_id: string
           id: string
@@ -689,8 +702,10 @@ export type Database = {
           quantity: number
           rate: number
           return_date: string | null
+          section: string
         }
         Insert: {
+          cost_rate?: number
           created_at?: string
           equipment_id: string
           id?: string
@@ -700,8 +715,10 @@ export type Database = {
           quantity?: number
           rate?: number
           return_date?: string | null
+          section?: string
         }
         Update: {
+          cost_rate?: number
           created_at?: string
           equipment_id?: string
           id?: string
@@ -711,6 +728,7 @@ export type Database = {
           quantity?: number
           rate?: number
           return_date?: string | null
+          section?: string
         }
         Relationships: [
           {
@@ -729,6 +747,92 @@ export type Database = {
           },
         ]
       }
+      project_template_items: {
+        Row: {
+          cost_rate: number
+          created_at: string
+          crew_role: string | null
+          daily_rate: number
+          equipment_id: string | null
+          id: string
+          kind: string
+          quantity: number
+          section: string
+          template_id: string
+        }
+        Insert: {
+          cost_rate?: number
+          created_at?: string
+          crew_role?: string | null
+          daily_rate?: number
+          equipment_id?: string | null
+          id?: string
+          kind: string
+          quantity?: number
+          section?: string
+          template_id: string
+        }
+        Update: {
+          cost_rate?: number
+          created_at?: string
+          crew_role?: string | null
+          daily_rate?: number
+          equipment_id?: string | null
+          id?: string
+          kind?: string
+          quantity?: number
+          section?: string
+          template_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_template_items_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "project_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_templates: {
+        Row: {
+          active: boolean
+          created_at: string
+          default_excluded: string[]
+          default_included: string[]
+          description: string | null
+          event_type: string | null
+          id: string
+          name: string
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          default_excluded?: string[]
+          default_included?: string[]
+          description?: string | null
+          event_type?: string | null
+          id?: string
+          name: string
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          default_excluded?: string[]
+          default_included?: string[]
+          description?: string | null
+          event_type?: string | null
+          id?: string
+          name?: string
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       projects: {
         Row: {
           client_id: string | null
@@ -736,12 +840,17 @@ export type Database = {
           created_at: string
           created_by: string | null
           end_date: string | null
+          event_type: string | null
+          excluded_items: string[]
           id: string
+          included_items: string[]
           location_id: string | null
           notes: string | null
           organization_id: string
           start_date: string | null
           status: string
+          tier_gold_amount: number | null
+          tier_silver_amount: number | null
           title: string
           total_amount: number
           updated_at: string
@@ -753,12 +862,17 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           end_date?: string | null
+          event_type?: string | null
+          excluded_items?: string[]
           id?: string
+          included_items?: string[]
           location_id?: string | null
           notes?: string | null
           organization_id: string
           start_date?: string | null
           status?: string
+          tier_gold_amount?: number | null
+          tier_silver_amount?: number | null
           title: string
           total_amount?: number
           updated_at?: string
@@ -770,12 +884,17 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           end_date?: string | null
+          event_type?: string | null
+          excluded_items?: string[]
           id?: string
+          included_items?: string[]
           location_id?: string | null
           notes?: string | null
           organization_id?: string
           start_date?: string | null
           status?: string
+          tier_gold_amount?: number | null
+          tier_silver_amount?: number | null
           title?: string
           total_amount?: number
           updated_at?: string
