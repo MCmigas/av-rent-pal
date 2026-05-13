@@ -9,6 +9,7 @@ export type DocItem = {
   quantity: number;
   unit_price: number;
   vat_rate?: number;
+  section?: string;
 };
 
 export type DocOrg = {
@@ -35,6 +36,10 @@ export type DocPayload = {
   vat_rate?: number;
   items: DocItem[];
   org?: DocOrg;
+  included?: string[];
+  excluded?: string[];
+  tiers?: { label: string; amount: number; description?: string }[];
+  group_by_section?: boolean;
 };
 
 const fmtEur = (n: number) =>
