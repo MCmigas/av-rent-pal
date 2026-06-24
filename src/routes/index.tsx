@@ -24,7 +24,7 @@ function Landing() {
     <div className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border/60">
         <div className="container mx-auto flex items-center justify-between px-6 py-4">
-          <Logo className="h-9" />
+          <Logo className="h-14" />
           <div className="flex gap-2">
             <Button asChild variant="ghost"><Link to="/login">Entrar</Link></Button>
             <Button asChild><Link to="/login" search={{ mode: "signup" }}>Criar conta</Link></Button>
