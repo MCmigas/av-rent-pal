@@ -318,6 +318,7 @@ function ProjectDetailPage() {
           <TabsTrigger value="tiers">Opções (Tiers)</TabsTrigger>
           <TabsTrigger value="incl">Inclui / Não inclui</TabsTrigger>
           <TabsTrigger value="margin">Margem (interno)</TabsTrigger>
+          <TabsTrigger value="attachments">Anexos</TabsTrigger>
         </TabsList>
 
         <TabsContent value="details">
