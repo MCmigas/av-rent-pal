@@ -81,13 +81,60 @@ function ProjectDetailPage() {
       if (error) throw error; return data as CA[];
     },
   });
-  const { data: profiles = [] } = useQuery({
-    queryKey: ["profiles-all"],
+
+  // Attachments
+  const [uploading, setUploading] = useState(false);
+  const { data: attachments = [] } = useQuery({
+    queryKey: ["attachments", id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("profiles").select("id,full_name").order("full_name");
-      if (error) throw error; return data as Profile[];
+      const { data, error } = await supabase.from("project_attachments")
+        .select("id,project_id,original_name,content_type,file_size,storage_path,created_at")
+        .eq("project_id", id).order("created_at", { ascending: false });
+      if (error) throw error; return data as Attachment[];
     },
   });
+  const deleteAttachment = useMutation({
+    mutationFn: async (att: Attachment) => {
+      const { error: storageError } = await supabase.storage.from("project-attachments").remove([att.storage_path]);
+      if (storageError) throw storageError;
+      const { error } = await supabase.from("project_attachments").delete().eq("id", att.id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["attachments", id] }),
+    onError: (e: any) => toast.error(e.message),
+  });
+  const handleFileUpload = async (file: File) => {
+    if (!project) return;
+    setUploading(true);
+    try {
+      const ext = file.name.split('.').pop() || 'bin';
+      const safeName = `${Date.now()}_${Math.random().toString(36).slice(2,8)}.${ext}`;
+      const path = `${project.organization_id}/${id}/${safeName}`;
+      const { error: upError } = await supabase.storage.from("project-attachments").upload(path, file, { contentType: file.type });
+      if (upError) throw upError;
+      const { error: dbError } = await supabase.from("project_attachments").insert({
+        project_id: id,
+        organization_id: project.organization_id,
+        storage_path: path,
+        original_name: file.name,
+        content_type: file.type,
+        file_size: file.size,
+      });
+      if (dbError) throw dbError;
+      qc.invalidateQueries({ queryKey: ["attachments", id] });
+      toast.success("Ficheiro carregado");
+    } catch (e: any) {
+      toast.error(e.message ?? "Erro ao carregar");
+    } finally {
+      setUploading(false);
+    }
+  };
+  const getSignedUrl = async (path: string) => {
+    const { data, error } = await supabase.storage.from("project-attachments").createSignedUrl(path, 3600);
+    if (error) throw error;
+    return data.signedUrl;
+  };
+
 
   // local edit state for header
   const [edit, setEdit] = useState<Partial<Project>>({});
