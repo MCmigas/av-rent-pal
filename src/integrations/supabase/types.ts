@@ -55,7 +55,7 @@ export type Database = {
           role: string
           section: string
           start_date: string | null
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           cost_rate?: number
@@ -67,7 +67,7 @@ export type Database = {
           role?: string
           section?: string
           start_date?: string | null
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           cost_rate?: number
@@ -79,7 +79,7 @@ export type Database = {
           role?: string
           section?: string
           start_date?: string | null
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
