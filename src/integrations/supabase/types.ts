@@ -1103,7 +1103,54 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      my_crew_assignments: {
+        Row: {
+          created_at: string | null
+          end_date: string | null
+          id: string | null
+          project_id: string | null
+          role: string | null
+          section: string | null
+          start_date: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          end_date?: string | null
+          id?: string | null
+          project_id?: string | null
+          role?: string | null
+          section?: string | null
+          start_date?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          end_date?: string | null
+          id?: string | null
+          project_id?: string | null
+          role?: string | null
+          section?: string | null
+          start_date?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crew_assignments_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crew_assignments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       accept_invite: { Args: { _token: string }; Returns: string }
