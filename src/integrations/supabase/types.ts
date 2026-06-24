@@ -690,6 +690,57 @@ export type Database = {
         }
         Relationships: []
       }
+      project_attachments: {
+        Row: {
+          content_type: string | null
+          created_at: string
+          file_size: number | null
+          id: string
+          organization_id: string
+          original_name: string
+          project_id: string
+          storage_path: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          content_type?: string | null
+          created_at?: string
+          file_size?: number | null
+          id?: string
+          organization_id: string
+          original_name: string
+          project_id: string
+          storage_path: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          content_type?: string | null
+          created_at?: string
+          file_size?: number | null
+          id?: string
+          organization_id?: string
+          original_name?: string
+          project_id?: string
+          storage_path?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_attachments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_attachments_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_equipment: {
         Row: {
           cost_rate: number

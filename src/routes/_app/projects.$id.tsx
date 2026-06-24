@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Trash2, ArrowLeft, FileText, Receipt, Save } from "lucide-react";
+import { Trash2, ArrowLeft, FileText, Receipt, Save, Paperclip, Upload, Download, X, FileImage } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { fmtMoney } from "@/lib/format";
@@ -35,6 +35,8 @@ type Equip = { id: string; name: string; brand: string|null; model: string|null;
 type PE = { id: string; equipment_id: string; quantity: number; rate: number; cost_rate: number; section: string; pickup_date: string|null; return_date: string|null; equipment?: { name: string; brand: string|null; model: string|null; highlight: string|null } };
 type CA = { id: string; user_id: string; role: string; daily_rate: number; cost_rate: number; section: string; start_date: string|null; end_date: string|null; profiles?: { full_name: string|null } };
 type Profile = { id: string; full_name: string|null };
+type Attachment = { id: string; project_id: string; original_name: string; content_type: string|null; file_size: number|null; storage_path: string; created_at: string; };
+
 
 const dayDiff = (a?: string|null, b?: string|null, fb = 1) => {
   if (!a || !b) return fb;
@@ -86,6 +88,60 @@ function ProjectDetailPage() {
       if (error) throw error; return data as Profile[];
     },
   });
+
+  // Attachments
+  const [uploading, setUploading] = useState(false);
+  const { data: attachments = [] } = useQuery({
+    queryKey: ["attachments", id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("project_attachments")
+        .select("id,project_id,original_name,content_type,file_size,storage_path,created_at")
+        .eq("project_id", id).order("created_at", { ascending: false });
+      if (error) throw error; return data as Attachment[];
+    },
+  });
+  const deleteAttachment = useMutation({
+    mutationFn: async (att: Attachment) => {
+      const { error: storageError } = await supabase.storage.from("project-attachments").remove([att.storage_path]);
+      if (storageError) throw storageError;
+      const { error } = await supabase.from("project_attachments").delete().eq("id", att.id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["attachments", id] }),
+    onError: (e: any) => toast.error(e.message),
+  });
+  const handleFileUpload = async (file: File) => {
+    if (!project) return;
+    setUploading(true);
+    try {
+      const ext = file.name.split('.').pop() || 'bin';
+      const safeName = `${Date.now()}_${Math.random().toString(36).slice(2,8)}.${ext}`;
+      const path = `${project.organization_id}/${id}/${safeName}`;
+      const { error: upError } = await supabase.storage.from("project-attachments").upload(path, file, { contentType: file.type });
+      if (upError) throw upError;
+      const { error: dbError } = await supabase.from("project_attachments").insert({
+        project_id: id,
+        organization_id: project.organization_id,
+        storage_path: path,
+        original_name: file.name,
+        content_type: file.type,
+        file_size: file.size,
+      });
+      if (dbError) throw dbError;
+      qc.invalidateQueries({ queryKey: ["attachments", id] });
+      toast.success("Ficheiro carregado");
+    } catch (e: any) {
+      toast.error(e.message ?? "Erro ao carregar");
+    } finally {
+      setUploading(false);
+    }
+  };
+  const getSignedUrl = async (path: string) => {
+    const { data, error } = await supabase.storage.from("project-attachments").createSignedUrl(path, 3600);
+    if (error) throw error;
+    return data.signedUrl;
+  };
+
 
   // local edit state for header
   const [edit, setEdit] = useState<Partial<Project>>({});
@@ -262,6 +318,7 @@ function ProjectDetailPage() {
           <TabsTrigger value="tiers">Opções (Tiers)</TabsTrigger>
           <TabsTrigger value="incl">Inclui / Não inclui</TabsTrigger>
           <TabsTrigger value="margin">Margem (interno)</TabsTrigger>
+          <TabsTrigger value="attachments">Anexos</TabsTrigger>
         </TabsList>
 
         <TabsContent value="details">
@@ -438,6 +495,71 @@ function ProjectDetailPage() {
                 </CardContent></Card>
             </div>
           </CardContent></Card>
+        </TabsContent>
+
+        <TabsContent value="attachments" className="space-y-4">
+          <Card>
+            <CardHeader className="flex-row items-center justify-between">
+              <CardTitle className="text-base flex items-center gap-2"><Paperclip className="h-4 w-4" />Anexos do projeto</CardTitle>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="file"
+                  id="file-upload"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleFileUpload(file);
+                    e.target.value = "";
+                  }}
+                  disabled={uploading}
+                />
+                <Label htmlFor="file-upload" className="cursor-pointer">
+                  <Button variant="outline" asChild disabled={uploading}>
+                    <span><Upload className="mr-2 h-4 w-4" />{uploading ? "A carregar…" : "Carregar ficheiro"}</span>
+                  </Button>
+                </Label>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {attachments.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-8">Sem anexos. Carrega riders, PDFs, imagens ou outros ficheiros.</p>
+              )}
+              {attachments.length > 0 && (
+                <div className="grid gap-2">
+                  {attachments.map((att) => {
+                    const isImage = att.content_type?.startsWith("image/");
+                    return (
+                      <div key={att.id} className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors">
+                        <div className="flex items-center gap-3 min-w-0">
+                          {isImage ? <FileImage className="h-5 w-5 shrink-0 text-muted-foreground" /> : <FileText className="h-5 w-5 shrink-0 text-muted-foreground" />}
+                          <div className="min-w-0">
+                            <p className="font-medium text-sm truncate" title={att.original_name}>{att.original_name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {att.content_type ?? "—"} · {att.file_size ? `${(att.file_size / 1024).toFixed(1)} KB` : "—"}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <Button variant="ghost" size="icon" title="Transferir"
+                            onClick={async () => {
+                              try {
+                                const url = await getSignedUrl(att.storage_path);
+                                window.open(url, "_blank");
+                              } catch (e: any) { toast.error(e.message); }
+                            }}>
+                            <Download className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" title="Eliminar" onClick={() => confirm(`Eliminar "${att.original_name}"?`) && deleteAttachment.mutate(att)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </>
