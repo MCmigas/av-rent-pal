@@ -34,7 +34,9 @@ type Project = {
 type Equip = { id: string; name: string; brand: string|null; model: string|null; daily_rate: number; internal_cost_per_day: number; highlight: string|null };
 type PE = { id: string; equipment_id: string; quantity: number; rate: number; cost_rate: number; section: string; pickup_date: string|null; return_date: string|null; equipment?: { name: string; brand: string|null; model: string|null; highlight: string|null } };
 type CA = { id: string; user_id: string; role: string; daily_rate: number; cost_rate: number; section: string; start_date: string|null; end_date: string|null; profiles?: { full_name: string|null } };
+type Profile = { id: string; full_name: string|null };
 type Attachment = { id: string; project_id: string; original_name: string; content_type: string|null; file_size: number|null; storage_path: string; created_at: string; };
+
 
 const dayDiff = (a?: string|null, b?: string|null, fb = 1) => {
   if (!a || !b) return fb;
