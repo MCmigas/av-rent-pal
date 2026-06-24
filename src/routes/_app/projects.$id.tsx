@@ -496,6 +496,71 @@ function ProjectDetailPage() {
             </div>
           </CardContent></Card>
         </TabsContent>
+
+        <TabsContent value="attachments" className="space-y-4">
+          <Card>
+            <CardHeader className="flex-row items-center justify-between">
+              <CardTitle className="text-base flex items-center gap-2"><Paperclip className="h-4 w-4" />Anexos do projeto</CardTitle>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="file"
+                  id="file-upload"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleFileUpload(file);
+                    e.target.value = "";
+                  }}
+                  disabled={uploading}
+                />
+                <Label htmlFor="file-upload" className="cursor-pointer">
+                  <Button variant="outline" asChild disabled={uploading}>
+                    <span><Upload className="mr-2 h-4 w-4" />{uploading ? "A carregar…" : "Carregar ficheiro"}</span>
+                  </Button>
+                </Label>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {attachments.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-8">Sem anexos. Carrega riders, PDFs, imagens ou outros ficheiros.</p>
+              )}
+              {attachments.length > 0 && (
+                <div className="grid gap-2">
+                  {attachments.map((att) => {
+                    const isImage = att.content_type?.startsWith("image/");
+                    return (
+                      <div key={att.id} className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors">
+                        <div className="flex items-center gap-3 min-w-0">
+                          {isImage ? <FileImage className="h-5 w-5 shrink-0 text-muted-foreground" /> : <FileText className="h-5 w-5 shrink-0 text-muted-foreground" />}
+                          <div className="min-w-0">
+                            <p className="font-medium text-sm truncate" title={att.original_name}>{att.original_name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {att.content_type ?? "—"} · {att.file_size ? `${(att.file_size / 1024).toFixed(1)} KB` : "—"}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <Button variant="ghost" size="icon" title="Transferir"
+                            onClick={async () => {
+                              try {
+                                const url = await getSignedUrl(att.storage_path);
+                                window.open(url, "_blank");
+                              } catch (e: any) { toast.error(e.message); }
+                            }}>
+                            <Download className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" title="Eliminar" onClick={() => confirm(`Eliminar "${att.original_name}"?`) && deleteAttachment.mutate(att)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
     </>
   );
