@@ -81,6 +81,13 @@ function ProjectDetailPage() {
       if (error) throw error; return data as CA[];
     },
   });
+  const { data: profiles = [] } = useQuery({
+    queryKey: ["profiles-all"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("profiles").select("id,full_name").order("full_name");
+      if (error) throw error; return data as Profile[];
+    },
+  });
 
   // Attachments
   const [uploading, setUploading] = useState(false);
