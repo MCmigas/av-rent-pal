@@ -67,8 +67,12 @@ export function EquipmentDialog({ open, onOpenChange, item }: {
       const path = `${organizationId}/${kind}s/${crypto.randomUUID()}.${ext}`;
       const { error } = await supabase.storage.from("equipment").upload(path, file, { upsert: true });
       if (error) throw error;
-      const { data } = supabase.storage.from("equipment").getPublicUrl(path);
-      setForm((f: Partial<Equipment>) => ({ ...f, [kind === "image" ? "image_url" : "manual_url"]: data.publicUrl }));
+      // Bucket is private; generate a long-lived signed URL (1 year)
+      const { data, error: signErr } = await supabase.storage
+        .from("equipment")
+        .createSignedUrl(path, 60 * 60 * 24 * 365);
+      if (signErr) throw signErr;
+      setForm((f: Partial<Equipment>) => ({ ...f, [kind === "image" ? "image_url" : "manual_url"]: data.signedUrl }));
     } catch (e: any) {
       toast.error(e.message);
     } finally {
