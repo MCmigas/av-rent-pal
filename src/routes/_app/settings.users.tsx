@@ -136,7 +136,7 @@ function UsersPage() {
       return data;
     },
     onSuccess: (data) => {
-      const url = `${window.location.origin}/accept-invite?token=${data.token}`;
+      const url = `${PUBLIC_APP_URL}/accept-invite?token=${data.token}`;
       navigator.clipboard?.writeText(url).catch(() => {});
       toast.success("Convite criado — link copiado");
       setInviteEmail(""); setInviteProfileId(""); setInviteLocs([]);
@@ -158,7 +158,7 @@ function UsersPage() {
   });
 
   const copyLink = (token: string) => {
-    const url = `${window.location.origin}/accept-invite?token=${token}`;
+    const url = `${PUBLIC_APP_URL}/accept-invite?token=${token}`;
     navigator.clipboard?.writeText(url);
     toast.success("Link copiado");
   };
