@@ -16,6 +16,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { ShieldCheck, ShieldAlert, Copy, Trash2, Mail } from "lucide-react";
 
+const PUBLIC_APP_URL = "https://warehouse.eurosom.pt";
+
 export const Route = createFileRoute("/_app/settings/users")({
   head: () => ({ meta: [{ title: "Utilizadores — Eurosom" }] }),
   beforeLoad: async () => {
