@@ -52,6 +52,7 @@ const groups: NavGroup[] = [
     label: "Definições",
     items: [
       { to: "/settings/users", label: "Utilizadores", icon: Settings, adminOnly: true },
+      { to: "/settings/profiles", label: "Perfis de Permissões", icon: ShieldCheck, adminOnly: true },
     ],
   },
 ];
