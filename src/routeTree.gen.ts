@@ -20,6 +20,7 @@ import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppCrewRouteImport } from './routes/_app/crew'
 import { Route as AppCalendarRouteImport } from './routes/_app/calendar'
 import { Route as AppSettingsUsersRouteImport } from './routes/_app/settings.users'
+import { Route as AppSettingsProfilesRouteImport } from './routes/_app/settings.profiles'
 import { Route as AppProjectsTemplatesRouteImport } from './routes/_app/projects.templates'
 import { Route as AppProjectsIdRouteImport } from './routes/_app/projects.$id'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
@@ -79,6 +80,11 @@ const AppSettingsUsersRoute = AppSettingsUsersRouteImport.update({
   path: '/settings/users',
   getParentRoute: () => AppRoute,
 } as any)
+const AppSettingsProfilesRoute = AppSettingsProfilesRouteImport.update({
+  id: '/settings/profiles',
+  path: '/settings/profiles',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppProjectsTemplatesRoute = AppProjectsTemplatesRouteImport.update({
   id: '/templates',
   path: '/templates',
@@ -112,6 +118,7 @@ export interface FileRoutesByFullPath {
   '/projects': typeof AppProjectsRouteWithChildren
   '/projects/$id': typeof AppProjectsIdRoute
   '/projects/templates': typeof AppProjectsTemplatesRoute
+  '/settings/profiles': typeof AppSettingsProfilesRoute
   '/settings/users': typeof AppSettingsUsersRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -128,6 +135,7 @@ export interface FileRoutesByTo {
   '/projects': typeof AppProjectsRouteWithChildren
   '/projects/$id': typeof AppProjectsIdRoute
   '/projects/templates': typeof AppProjectsTemplatesRoute
+  '/settings/profiles': typeof AppSettingsProfilesRoute
   '/settings/users': typeof AppSettingsUsersRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -146,6 +154,7 @@ export interface FileRoutesById {
   '/_app/projects': typeof AppProjectsRouteWithChildren
   '/_app/projects/$id': typeof AppProjectsIdRoute
   '/_app/projects/templates': typeof AppProjectsTemplatesRoute
+  '/_app/settings/profiles': typeof AppSettingsProfilesRoute
   '/_app/settings/users': typeof AppSettingsUsersRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -164,6 +173,7 @@ export interface FileRouteTypes {
     | '/projects'
     | '/projects/$id'
     | '/projects/templates'
+    | '/settings/profiles'
     | '/settings/users'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -180,6 +190,7 @@ export interface FileRouteTypes {
     | '/projects'
     | '/projects/$id'
     | '/projects/templates'
+    | '/settings/profiles'
     | '/settings/users'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -197,6 +208,7 @@ export interface FileRouteTypes {
     | '/_app/projects'
     | '/_app/projects/$id'
     | '/_app/projects/templates'
+    | '/_app/settings/profiles'
     | '/_app/settings/users'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -290,6 +302,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsUsersRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/settings/profiles': {
+      id: '/_app/settings/profiles'
+      path: '/settings/profiles'
+      fullPath: '/settings/profiles'
+      preLoaderRoute: typeof AppSettingsProfilesRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/projects/templates': {
       id: '/_app/projects/templates'
       path: '/templates'
@@ -342,6 +361,7 @@ interface AppRouteChildren {
   AppEquipmentRoute: typeof AppEquipmentRoute
   AppInvoicesRoute: typeof AppInvoicesRoute
   AppProjectsRoute: typeof AppProjectsRouteWithChildren
+  AppSettingsProfilesRoute: typeof AppSettingsProfilesRoute
   AppSettingsUsersRoute: typeof AppSettingsUsersRoute
 }
 
@@ -352,6 +372,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppEquipmentRoute: AppEquipmentRoute,
   AppInvoicesRoute: AppInvoicesRoute,
   AppProjectsRoute: AppProjectsRouteWithChildren,
+  AppSettingsProfilesRoute: AppSettingsProfilesRoute,
   AppSettingsUsersRoute: AppSettingsUsersRoute,
 }
 

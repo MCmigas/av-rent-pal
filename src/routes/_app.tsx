@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "@/components/Logo";
 import {
   LayoutDashboard, Package, Calendar, Users, FileText, LogOut, Settings,
-  Wrench, Receipt, Wallet, ClipboardCheck, BarChart3,
+  Wrench, Receipt, Wallet, ClipboardCheck, BarChart3, ShieldCheck,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -52,6 +52,7 @@ const groups: NavGroup[] = [
     label: "Definições",
     items: [
       { to: "/settings/users", label: "Utilizadores", icon: Settings, adminOnly: true },
+      { to: "/settings/profiles", label: "Perfis de Permissões", icon: ShieldCheck, adminOnly: true },
     ],
   },
 ];
