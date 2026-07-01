@@ -189,12 +189,12 @@ function ProfilesPage() {
       <PageHeader
         title="Perfis de Permissões"
         subtitle="Cria perfis personalizados e escolhe exatamente o que cada função pode fazer"
-        action={
-          <Button onClick={startCreate}>
-            <Plus className="mr-2 h-4 w-4" /> Novo perfil
-          </Button>
-        }
       />
+      <div className="mb-4 flex justify-end">
+        <Button onClick={startCreate}>
+          <Plus className="mr-2 h-4 w-4" /> Novo perfil
+        </Button>
+      </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         {profilesQ.data?.map((p) => (
