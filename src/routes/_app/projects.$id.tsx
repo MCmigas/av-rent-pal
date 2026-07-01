@@ -407,27 +407,52 @@ function ProjectDetailPage() {
               </Select>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader><TableRow>
-                  <TableHead>Pessoa</TableHead><TableHead>Função</TableHead>
-                  <TableHead className="w-28">€/dia</TableHead><TableHead className="w-28">Custo/dia</TableHead>
-                  <TableHead className="w-28">Total</TableHead><TableHead></TableHead>
-                </TableRow></TableHeader>
-                <TableBody>
-                  {caItems.length === 0 && <TableRow><TableCell colSpan={6} className="text-muted-foreground text-center py-6">Sem equipa</TableCell></TableRow>}
-                  {caItems.map((r) => {
-                    const d = dayDiff(r.start_date, r.end_date, days);
-                    return <TableRow key={r.id}>
-                      <TableCell className="font-medium">{r.profiles?.full_name ?? "—"}</TableCell>
-                      <TableCell><Input className="h-8" defaultValue={r.role} onBlur={(e) => updateCA.mutate({ id: r.id, role: e.target.value })} /></TableCell>
-                      <TableCell><Input type="number" step="0.01" className="h-8" defaultValue={r.daily_rate} onBlur={(e) => updateCA.mutate({ id: r.id, daily_rate: +e.target.value })} /></TableCell>
-                      <TableCell><Input type="number" step="0.01" className="h-8" defaultValue={r.cost_rate} onBlur={(e) => updateCA.mutate({ id: r.id, cost_rate: +e.target.value })} /></TableCell>
-                      <TableCell className="font-medium">{fmtMoney(r.daily_rate * d)}</TableCell>
-                      <TableCell><Button variant="ghost" size="icon" onClick={() => delCA.mutate(r.id)}><Trash2 className="h-4 w-4" /></Button></TableCell>
-                    </TableRow>;
-                  })}
-                </TableBody>
-              </Table>
+              {caItems.length === 0 ? (
+                <p className="text-muted-foreground text-center py-6 text-sm">Sem equipa atribuída</p>
+              ) : (
+                <>
+                  <div className="rounded-md border bg-muted/30 p-3 mb-4">
+                    <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Resumo — total a receber</div>
+                    <div className="space-y-1">
+                      {caItems.map((r) => {
+                        const d = dayDiff(r.start_date, r.end_date, days);
+                        return (
+                          <div key={r.id} className="flex justify-between items-center text-sm">
+                            <span><strong>{r.profiles?.full_name ?? "—"}</strong> <span className="text-muted-foreground">· {r.role} · {d} dia{d>1?"s":""} × {fmtMoney(r.daily_rate)}</span></span>
+                            <span className="font-semibold tabular-nums">{fmtMoney(r.daily_rate * d)}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="flex justify-between items-center pt-2 mt-2 border-t text-sm">
+                      <span className="font-medium">Total equipa ({caItems.length} membro{caItems.length>1?"s":""})</span>
+                      <span className="font-bold tabular-nums">{fmtMoney(caItems.reduce((s, r) => s + r.daily_rate * dayDiff(r.start_date, r.end_date, days), 0))}</span>
+                    </div>
+                  </div>
+                  <Table>
+                    <TableHeader><TableRow>
+                      <TableHead>Pessoa</TableHead><TableHead>Função</TableHead>
+                      <TableHead className="w-20">Dias</TableHead>
+                      <TableHead className="w-28">€/dia</TableHead><TableHead className="w-28">Custo/dia</TableHead>
+                      <TableHead className="w-28 text-right">Total</TableHead><TableHead></TableHead>
+                    </TableRow></TableHeader>
+                    <TableBody>
+                      {caItems.map((r) => {
+                        const d = dayDiff(r.start_date, r.end_date, days);
+                        return <TableRow key={r.id}>
+                          <TableCell className="font-medium">{r.profiles?.full_name ?? "—"}</TableCell>
+                          <TableCell><Input className="h-8" defaultValue={r.role} onBlur={(e) => updateCA.mutate({ id: r.id, role: e.target.value })} /></TableCell>
+                          <TableCell className="tabular-nums text-muted-foreground">{d}</TableCell>
+                          <TableCell><Input type="number" step="0.01" className="h-8" defaultValue={r.daily_rate} onBlur={(e) => updateCA.mutate({ id: r.id, daily_rate: +e.target.value })} /></TableCell>
+                          <TableCell><Input type="number" step="0.01" className="h-8" defaultValue={r.cost_rate} onBlur={(e) => updateCA.mutate({ id: r.id, cost_rate: +e.target.value })} /></TableCell>
+                          <TableCell className="font-medium text-right tabular-nums">{fmtMoney(r.daily_rate * d)}</TableCell>
+                          <TableCell><Button variant="ghost" size="icon" onClick={() => delCA.mutate(r.id)}><Trash2 className="h-4 w-4" /></Button></TableCell>
+                        </TableRow>;
+                      })}
+                    </TableBody>
+                  </Table>
+                </>
+              )}
             </CardContent>
           </Card>
 
