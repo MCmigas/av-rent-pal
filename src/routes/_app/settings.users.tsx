@@ -116,6 +116,28 @@ function UsersPage() {
     onError: (e: any) => toast.error(e.message ?? "Erro ao atualizar"),
   });
 
+  const removeUser = useMutation({
+    mutationFn: async (userId: string) => {
+      const { error: e1 } = await supabase
+        .from("user_permission_profiles")
+        .delete()
+        .eq("user_id", userId)
+        .eq("organization_id", organizationId!);
+      if (e1) throw e1;
+      const { error: e2 } = await supabase
+        .from("user_locations")
+        .delete()
+        .eq("user_id", userId)
+        .eq("organization_id", organizationId!);
+      if (e2) throw e2;
+    },
+    onSuccess: () => {
+      toast.success("Utilizador removido");
+      qc.invalidateQueries({ queryKey: ["org-users", organizationId] });
+    },
+    onError: (e: any) => toast.error(e.message ?? "Erro ao remover"),
+  });
+
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteProfileId, setInviteProfileId] = useState<string>("");
   const [inviteLocs, setInviteLocs] = useState<string[]>([]);
@@ -190,14 +212,15 @@ function UsersPage() {
               <th className="px-4 py-3">Nome</th>
               <th className="px-4 py-3">Perfil</th>
               <th className="px-4 py-3 text-right">Estado</th>
+              <th className="px-4 py-3 text-right">Ações</th>
             </tr>
           </thead>
           <tbody>
             {usersQ.isLoading && (
-              <tr><td colSpan={3} className="px-4 py-6 text-center text-muted-foreground">A carregar…</td></tr>
+              <tr><td colSpan={4} className="px-4 py-6 text-center text-muted-foreground">A carregar…</td></tr>
             )}
             {usersQ.data?.length === 0 && (
-              <tr><td colSpan={3} className="px-4 py-6 text-center text-muted-foreground">Sem utilizadores.</td></tr>
+              <tr><td colSpan={4} className="px-4 py-6 text-center text-muted-foreground">Sem utilizadores.</td></tr>
             )}
             {usersQ.data?.map((u) => {
               const isSelf = u.user_id === user?.id;
@@ -227,6 +250,21 @@ function UsersPage() {
                     ) : (
                       <Badge variant="secondary" className="gap-1"><ShieldAlert className="h-3 w-3" /> {u.profile_name}</Badge>
                     )}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      disabled={isSelf || removeUser.isPending}
+                      onClick={() => {
+                        if (confirm(`Remover ${u.full_name} desta organização?`)) {
+                          removeUser.mutate(u.user_id);
+                        }
+                      }}
+                      title={isSelf ? "Não pode remover-se a si próprio" : "Remover utilizador"}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </td>
                 </tr>
               );
